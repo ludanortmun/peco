@@ -31,13 +31,30 @@ if ! command -v sha256sum >/dev/null 2>&1 &&
   exit 1
 fi
 
-latest_url=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
+# GitHub's latest-release redirect excludes prereleases.
+latest_url=$(curl -sSL -o /dev/null -w '%{url_effective}' \
   "https://github.com/$repo/releases/latest")
 tag=${latest_url##*/}
 case "$tag" in
   v[0-9]*) ;;
   *)
-    printf 'Could not determine the latest release tag\n' >&2
+    # Public releases are newest first; drafts are not returned anonymously.
+    releases=$(curl -fsSL "https://api.github.com/repos/$repo/releases?per_page=1")
+    tag=$(printf '%s\n' "$releases" | awk '
+      match($0, /"tag_name"[[:space:]]*:[[:space:]]*"[^"]+"/) {
+        value = substr($0, RSTART, RLENGTH)
+        sub(/^"tag_name"[[:space:]]*:[[:space:]]*"/, "", value)
+        sub(/"$/, "", value)
+        print value
+        exit
+      }
+    ')
+    ;;
+esac
+case "$tag" in
+  v[0-9]*) ;;
+  *)
+    printf 'No published release found\n' >&2
     exit 1
     ;;
 esac
