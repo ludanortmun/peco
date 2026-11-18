@@ -3,6 +3,33 @@
 A small todo app with a CLI and a JSON REST API. Both use the same domain logic
 and local SQLite database.
 
+## Install
+
+On macOS arm64 or Linux amd64, install both executables from the latest GitHub
+release:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/ludanortmun/peco/main/install.sh | sh
+```
+
+The installer verifies the archive against the release's `SHA256SUMS` and installs
+`peco` and `peco-server` into `~/.local/bin`. Add that directory to your shell
+profile if it is not already on your `PATH`:
+
+```sh
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Set `PECO_INSTALL_DIR` to choose another destination:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/ludanortmun/peco/main/install.sh | PECO_INSTALL_DIR=/usr/local/bin sh
+```
+
+The destination must be writable by your user. Run the installer again to update
+to the latest release. It requires `curl`, `tar`, `awk`, `mktemp`, and either
+`sha256sum` or `shasum`.
+
 ## Build
 
 Install the Go version specified in `go.mod` (or newer), then run:

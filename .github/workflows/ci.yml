@@ -20,6 +20,8 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - name: Check installer syntax
+        run: sh -n install.sh
       - name: Check formatting
         shell: bash
         run: |
