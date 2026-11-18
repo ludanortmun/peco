@@ -35,8 +35,14 @@ func (client *PecoClient) Save(item Todo) (Todo, error) {
 		return Todo{}, errors.New(ErrInvalidInput)
 	}
 
+	item.CreatedAt = item.CreatedAt.UTC()
+	if item.Due != nil {
+		due := item.Due.UTC()
+		item.Due = &due
+	}
+
 	if item.Id == 0 {
-		item.CreatedAt = time.Now()
+		item.CreatedAt = time.Now().UTC()
 		created, err := client.storage.Create(item)
 		if err != nil {
 			return Todo{}, err

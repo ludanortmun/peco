@@ -25,6 +25,7 @@ func NewTodo(content string) Todo {
 }
 
 func NewTodoWithDueDate(content string, due time.Time) Todo {
+	due = due.UTC()
 	return Todo{
 		Content: content,
 		State:   Pending,

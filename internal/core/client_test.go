@@ -222,3 +222,35 @@ func TestSaveCreatedAt(t *testing.T) {
 		t.Fatalf("changed createdAt: got %v", err)
 	}
 }
+
+func TestSaveUsesUTC(t *testing.T) {
+	store := NewTestStore()
+	client := core.NewPecoClient(store)
+	due := time.Date(2026, time.December, 1, 0, 0, 0, 0, time.FixedZone("UTC+9", 9*60*60))
+	item := core.NewTodoWithDueDate("UTC todo", due)
+	if item.Due.Location() != time.UTC || !item.Due.Equal(due) {
+		t.Fatalf("constructor changed due instant or did not use UTC: %v", item.Due)
+	}
+	// Save must normalize dates supplied directly as well as via the constructor.
+	item.Due = &due
+	saved, err := client.Save(item)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if saved.CreatedAt.Location() != time.UTC || saved.Due.Location() != time.UTC || !saved.Due.Equal(due) {
+		t.Fatalf("Save did not preserve instant in UTC: %+v", saved)
+	}
+	// Also exercise updates with an equivalent non-UTC creation timestamp.
+	saved.CreatedAt = saved.CreatedAt.In(due.Location())
+	saved.Due = &due
+	if _, err := client.Save(saved); err != nil {
+		t.Fatal(err)
+	}
+	updated := store.items[saved.Id]
+	if updated.CreatedAt.Location() != time.UTC || updated.Due.Location() != time.UTC || !updated.Due.Equal(due) {
+		t.Fatalf("Update did not preserve instant in UTC: %+v", updated)
+	}
+	if due.Location() == time.UTC {
+		t.Fatal("Save mutated the caller's due date")
+	}
+}

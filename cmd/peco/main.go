@@ -13,15 +13,28 @@ import (
 
 var version = "dev"
 
+// localDate interprets terminal input in the system timezone, then passes UTC
+// to the domain.
+type localDate struct{ time.Time }
+
+func (date *localDate) UnmarshalText(text []byte) error {
+	parsed, err := time.ParseInLocation(time.DateOnly, string(text), time.Local)
+	if err != nil {
+		return err
+	}
+	date.Time = parsed.UTC()
+	return nil
+}
+
 type NewCmd struct {
 	Content string    `arg:"" help:"Todo content. Quote content containing spaces."`
-	Due     time.Time `help:"Due date in YYYY-MM-DD format (UTC)." format:"2006-01-02"`
+	Due     localDate `help:"Due date in YYYY-MM-DD format (system local time)." placeholder:"YYYY-MM-DD"`
 }
 
 func (cmd *NewCmd) Run(client *core.PecoClient) error {
 	item := core.NewTodo(cmd.Content)
 	if !cmd.Due.IsZero() {
-		item.Due = &cmd.Due
+		item.Due = &cmd.Due.Time
 	}
 	saved, err := client.Save(item)
 	if err != nil {
@@ -48,7 +61,7 @@ func (cmd *ListCmd) Run(client *core.PecoClient) error {
 			state = "done"
 		}
 		if item.Due != nil {
-			due = item.Due.Format(time.DateOnly)
+			due = item.Due.Local().Format(time.DateOnly)
 		}
 		fmt.Fprintf(out, "%d\t%s\t%s\t%s\n", item.Id, state, due, item.Content)
 	}
@@ -58,7 +71,7 @@ func (cmd *ListCmd) Run(client *core.PecoClient) error {
 type EditCmd struct {
 	ID      uint      `arg:"" help:"ID of the todo to edit."`
 	Content *string   `help:"Replace the content. Omit to keep the current content."`
-	Due     time.Time `help:"Replace the due date, in YYYY-MM-DD format (UTC). Omit to keep the current date." format:"2006-01-02"`
+	Due     localDate `help:"Replace the due date, in YYYY-MM-DD format (system local time). Omit to keep the current date." placeholder:"YYYY-MM-DD"`
 }
 
 func (cmd *EditCmd) Run(client *core.PecoClient) error {
@@ -70,7 +83,7 @@ func (cmd *EditCmd) Run(client *core.PecoClient) error {
 		item.Content = *cmd.Content
 	}
 	if !cmd.Due.IsZero() {
-		item.Due = &cmd.Due
+		item.Due = &cmd.Due.Time
 	}
 	if _, err := client.Save(item); err != nil {
 		return err

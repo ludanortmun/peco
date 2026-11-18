@@ -55,8 +55,10 @@ peco list --include-done
 ```
 
 Content containing spaces must be quoted. Due dates use `YYYY-MM-DD` at midnight
-UTC. Editing preserves fields whose flags are omitted. IDs come from `new` or
-`list`. Completed items are hidden unless `--include-done` is supplied.
+in your system local timezone. The CLI also displays due dates in that timezone;
+the core, database, and REST API use UTC. Editing preserves fields whose flags
+are omitted. IDs come from `new` or `list`. Completed items are hidden unless
+`--include-done` is supplied.
 
 Lists put pending items first, then the earliest due date (undated items last),
 then the oldest creation time. All matching items are returned.
@@ -93,8 +95,8 @@ the browser. The API itself works offline.
 | POST | `/todos` | Create a todo with `content`, optional `due`, and optional `state` |
 | PUT | `/todos/{id}` | Update an existing todo using its full JSON representation |
 
-`state` is `0` for pending and `1` for done. API timestamps use RFC3339; `due`
-may be `null`. Creation assigns `id` and `createdAt`; they cannot be supplied to
+`state` is `0` for pending and `1` for done. API timestamps use RFC3339 and are
+returned in UTC (input offsets are converted to UTC); `due` may be `null`. Creation assigns `id` and `createdAt`; they cannot be supplied to
 POST or changed through PUT. PUT requires `id`, `content`, `state`, and
 `createdAt`; an omitted or null `due` removes the due date.
 
