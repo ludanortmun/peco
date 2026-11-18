@@ -3,6 +3,7 @@ package core_test
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/ludanortmun/peco/internal/core"
 )
@@ -40,10 +41,12 @@ func (store *TestStore) Get(id uint) (core.Todo, bool) {
 	return item, ok
 }
 
-func (store *TestStore) List() ([]core.Todo, error) {
+func (store *TestStore) List(includeDone bool) ([]core.Todo, error) {
 	var todos []core.Todo
 	for _, item := range store.items {
-		todos = append(todos, item)
+		if includeDone || item.State != core.Done {
+			todos = append(todos, item)
+		}
 	}
 	return todos, nil
 }
@@ -177,11 +180,45 @@ func TestList(t *testing.T) {
 
 	client := core.NewPecoClient(store)
 
-	todos, err := client.List()
+	todos, err := client.List(false)
 	if err != nil {
 		t.Fatalf("Unexpected error when listing items: %v", err)
 	}
 	if len(todos) != 2 {
 		t.Fatalf("Expected 2 items in the list, got %d", len(todos))
+	}
+}
+
+func TestListIncludeDone(t *testing.T) {
+	store := NewTestStore()
+	store.items[1] = core.Todo{Id: 1, Content: "Pending", State: core.Pending}
+	store.items[2] = core.Todo{Id: 2, Content: "Done", State: core.Done}
+	client := core.NewPecoClient(store)
+	for _, includeDone := range []bool{false, true} {
+		items, err := client.List(includeDone)
+		want := 1
+		if includeDone {
+			want = 2
+		}
+		if err != nil || len(items) != want {
+			t.Fatalf("List(%v) = %v, %v; want %d items", includeDone, items, err, want)
+		}
+	}
+}
+
+func TestSaveCreatedAt(t *testing.T) {
+	createdAt := time.Now()
+	store := NewTestStore()
+	store.items[1] = core.Todo{Id: 1, Content: "Original", CreatedAt: createdAt}
+	client := core.NewPecoClient(store)
+	item := store.items[1]
+	// A persisted timestamp has no monotonic clock reading and may use UTC.
+	item.CreatedAt = createdAt.Round(0).UTC()
+	if _, err := client.Save(item); err != nil {
+		t.Fatalf("same instant rejected: %v", err)
+	}
+	item.CreatedAt = item.CreatedAt.Add(time.Second)
+	if _, err := client.Save(item); err == nil || err.Error() != core.ErrInvalidInput {
+		t.Fatalf("changed createdAt: got %v", err)
 	}
 }

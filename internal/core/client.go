@@ -14,7 +14,7 @@ type Store interface {
 	Create(item Todo) (Todo, error)
 	Update(item Todo) (Todo, error)
 	Get(id uint) (Todo, bool)
-	List() ([]Todo, error)
+	List(includeDone bool) ([]Todo, error)
 	Delete(id uint) error
 }
 
@@ -51,7 +51,7 @@ func (client *PecoClient) Save(item Todo) (Todo, error) {
 		return Todo{}, errors.New(ErrNotFound)
 	}
 
-	if existing.CreatedAt != item.CreatedAt {
+	if !existing.CreatedAt.Equal(item.CreatedAt) {
 		return Todo{}, errors.New(ErrInvalidInput)
 	}
 
@@ -68,10 +68,10 @@ func (client *PecoClient) Get(id uint) (Todo, error) {
 	return todo, nil
 }
 
-// List returns all Todo items from the storage.
+// List returns pending items, or all items when includeDone is true.
 // It returns an error if the underlying storage fails to retrieve the items.
-func (client *PecoClient) List() ([]Todo, error) {
-	return client.storage.List()
+func (client *PecoClient) List(includeDone bool) ([]Todo, error) {
+	return client.storage.List(includeDone)
 }
 
 // Delete idempotently removes a Todo item from the storage by its ID.
