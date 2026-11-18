@@ -6,7 +6,7 @@ and local SQLite database.
 ## Install
 
 On macOS arm64 or Linux amd64, install both executables from the latest GitHub
-release (or the newest published prerelease if no stable release exists):
+release:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/ludanortmun/peco/main/install.sh | sh
