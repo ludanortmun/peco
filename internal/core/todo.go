@@ -10,11 +10,11 @@ const (
 )
 
 type Todo struct {
-	Id        uint // non-zero value indicates an existing item
-	Content   string
-	State     State
-	CreatedAt time.Time
-	Due       *time.Time
+	Id        uint       `json:"id"` // non-zero value indicates an existing item
+	Content   string     `json:"content"`
+	State     State      `json:"state"`
+	CreatedAt time.Time  `json:"createdAt"`
+	Due       *time.Time `json:"due"`
 }
 
 func NewTodo(content string) Todo {

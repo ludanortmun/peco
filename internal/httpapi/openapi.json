@@ -1,0 +1,231 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Peco Todo API",
+    "version": "1.0.0",
+    "description": "A JSON interface to the same todo domain and SQLite database as the peco CLI. Errors have empty bodies. PUT replaces mutable fields using the full todo returned by GET."
+  },
+  "paths": {
+    "/todos": {
+      "get": {
+        "summary": "List todos",
+        "description": "Pending first, earliest due date next (undated last), then oldest created. Returns an unbounded list.",
+        "parameters": [
+          {
+            "name": "includeDone",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Include completed todos."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Todos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Todo"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input. Empty response body."
+          },
+          "500": {
+            "description": "Storage error. Empty response body."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a todo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewTodo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created todo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Path to the created todo."
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input. Empty response body."
+          },
+          "500": {
+            "description": "Storage error. Empty response body."
+          }
+        }
+      }
+    },
+    "/todos/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get a todo",
+        "responses": {
+          "200": {
+            "description": "Todo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Todo not found. Empty response body."
+          },
+          "400": {
+            "description": "Invalid input. Empty response body."
+          },
+          "500": {
+            "description": "Storage error. Empty response body."
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a todo",
+        "description": "Send the full todo from GET. Keep id and createdAt unchanged. Set state to 1 to complete, or 0 for pending. A null or omitted due removes the due date. Missing todos are not created.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Todo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated todo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Todo"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Todo not found. Empty response body."
+          },
+          "400": {
+            "description": "Invalid input. Empty response body."
+          },
+          "500": {
+            "description": "Storage error. Empty response body."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Todo": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "content",
+          "state",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Assigned on creation; immutable."
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "0 = pending, 1 = done."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Assigned on creation; immutable. RFC3339 timestamp."
+          },
+          "due": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "RFC3339 timestamp, or null for no due date."
+          }
+        }
+      },
+      "NewTodo": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string",
+            "minLength": 1
+          },
+          "due": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "RFC3339 timestamp, or null for no due date."
+          },
+          "state": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "0 = pending, 1 = done.",
+            "default": 0
+          }
+        }
+      }
+    }
+  }
+}
