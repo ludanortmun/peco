@@ -31,3 +31,9 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Local databases and build outputs
+*.db
+*.db-*
+/bin/
+/dist/

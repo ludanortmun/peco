@@ -2,7 +2,10 @@ module github.com/ludanortmun/peco
 
 go 1.27.4
 
-require github.com/alecthomas/kong v1.17.0
+require (
+	github.com/alecthomas/kong v1.17.0
+	modernc.org/sqlite v1.62.0
+)
 
 require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
@@ -14,5 +17,4 @@ require (
 	modernc.org/libc v1.80.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.62.0 // indirect
 )
