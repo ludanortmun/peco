@@ -1,11 +1,11 @@
 # peco
 
-A small todo app with a CLI and a JSON REST API. Both use the same domain logic
-and local SQLite database.
+A small todo app with a CLI, a JSON REST API, and a stdio MCP server. All three
+use the same domain logic and local SQLite database.
 
 ## Install
 
-On macOS arm64 or Linux amd64, install both executables from the latest GitHub
+On macOS arm64 or Linux amd64, install all three executables from the latest GitHub
 release:
 
 ```sh
@@ -13,7 +13,7 @@ curl -fsSL https://raw.githubusercontent.com/ludanortmun/peco/main/install.sh | 
 ```
 
 The installer verifies the archive against the release's `SHA256SUMS` and installs
-`peco` and `peco-server` into `~/.local/bin`. Add that directory to your shell
+`peco`, `peco-server`, and `peco-mcp` into `~/.local/bin`. Add that directory to your shell
 profile if it is not already on your `PATH`:
 
 ```sh
@@ -37,10 +37,11 @@ Install the Go version specified in `go.mod` (or newer), then run:
 ```sh
 go build -o bin/peco ./cmd/peco
 go build -o bin/peco-server ./cmd/peco-server
+go build -o bin/peco-mcp ./cmd/peco-mcp
 ```
 
 Run `./bin/peco` in the examples below, or add `bin` to your `PATH`.
-Release archives include both executables for macOS arm64 and Linux amd64,
+Release archives include all three executables for macOS arm64 and Linux amd64,
 plus a `SHA256SUMS` file alongside the archives.
 
 ## CLI
@@ -67,7 +68,7 @@ Use `peco --help` or `peco <command> --help` for command details.
 
 ## MCP server
 
-Run `peco mcp` to serve MCP over stdin/stdout using the official
+Run `peco-mcp` to serve MCP over stdin/stdout using the official
 [MCP Go SDK](https://github.com/modelcontextprotocol/go-sdk). Configure your MCP
 host to launch it, for example:
 
@@ -75,14 +76,15 @@ host to launch it, for example:
 {
   "mcpServers": {
     "peco": {
-      "command": "/absolute/path/to/peco",
-      "args": ["mcp"]
+      "command": "/absolute/path/to/peco-mcp"
     }
   }
 }
 ```
 
-Replace the command with the installed binary's absolute path. The host starts
+Replace the command with the installed binary's absolute path. If upgrading from
+v0.2.0-beta, replace the `peco` command and `["mcp"]` arguments with this standalone
+command and no arguments. The host starts
 and stops the process; no HTTP server is needed. Stdout is reserved for MCP
 messages, and startup errors go to stderr.
 
@@ -103,13 +105,13 @@ an existing due date. Invalid input and missing TODOs return MCP tool errors.
 
 ## Database
 
-The CLI and server create `peco/peco.db` beneath Go's `os.UserConfigDir()`:
+The CLI, HTTP server, and MCP server create `peco/peco.db` beneath Go's `os.UserConfigDir()`:
 
 - macOS: `~/Library/Application Support/peco/peco.db`
 - Linux: `$XDG_CONFIG_HOME/peco/peco.db`, or `~/.config/peco/peco.db`
 - Windows: `%AppData%\peco\peco.db`
 
-The directory and database are created automatically. Both executables share the
+The directory and database are created automatically. All three executables share the
 database when run as the same user with the same config environment.
 
 ## REST API
@@ -180,5 +182,5 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The release workflow verifies main ancestry, runs CI, builds both executables,
+The release workflow verifies main ancestry, runs CI, builds all three executables,
 and publishes GitHub Release archives with checksums and generated notes.

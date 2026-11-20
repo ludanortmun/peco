@@ -67,16 +67,16 @@ curl -fsSL -o "$workdir/SHA256SUMS" "$download_base/SHA256SUMS"
   else
     shasum -a 256 -c SHA256SUMS.selected
   fi
-  tar -xzf "$archive" peco peco-server
+  tar -xzf "$archive" peco peco-server peco-mcp
 )
 
 mkdir -p "$install_dir"
-for binary in peco peco-server; do
+for binary in peco peco-server peco-mcp; do
   cp "$workdir/$binary" "$install_dir/$binary"
   chmod 0755 "$install_dir/$binary"
   printf 'Installed %s/%s\n' "$install_dir" "$binary"
 done
 case ":$PATH:" in
   *":$install_dir:"*) ;;
-  *) printf 'Add %s to your PATH to run peco and peco-server.\n' "$install_dir" ;;
+  *) printf 'Add %s to your PATH to run peco, peco-server, and peco-mcp.\n' "$install_dir" ;;
 esac

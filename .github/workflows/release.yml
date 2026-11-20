@@ -48,13 +48,13 @@ jobs:
             local archive="peco_${archive_version}_${goos}_${goarch}.tar.gz"
             local stage="dist/${goos}-${goarch}"
             mkdir -p "$stage"
-            for binary in peco peco-server; do
+            for binary in peco peco-server peco-mcp; do
               GOOS="$goos" GOARCH="$goarch" go build -trimpath \
                 -ldflags="-s -w -X main.version=${GITHUB_REF_NAME}" \
                 -o "$stage/$binary" "./cmd/$binary"
             done
             cp README.md LICENSE "$stage/"
-            tar -C "$stage" -czf "dist/$archive" peco peco-server README.md LICENSE
+            tar -C "$stage" -czf "dist/$archive" peco peco-server peco-mcp README.md LICENSE
             rm -r "$stage"
           }
 
