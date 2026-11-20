@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 )
 
-// OpenConfig opens the database shared by the CLI and HTTP server.
+// OpenConfig opens the database shared by the CLI, HTTP server, and MCP server.
 func OpenConfig() (SQLiteStore, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {

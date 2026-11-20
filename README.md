@@ -65,6 +65,42 @@ then the oldest creation time. All matching items are returned.
 
 Use `peco --help` or `peco <command> --help` for command details.
 
+## MCP server
+
+Run `peco mcp` to serve MCP over stdin/stdout using the official
+[MCP Go SDK](https://github.com/modelcontextprotocol/go-sdk). Configure your MCP
+host to launch it, for example:
+
+```json
+{
+  "mcpServers": {
+    "peco": {
+      "command": "/absolute/path/to/peco",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Replace the command with the installed binary's absolute path. The host starts
+and stops the process; no HTTP server is needed. Stdout is reserved for MCP
+messages, and startup errors go to stderr.
+
+The server calls the same core domain logic and uses the same database as the
+CLI and REST API when launched with the same user and config environment.
+
+| Tool | Arguments | Behavior |
+| --- | --- | --- |
+| `list_todos` | `include_done` (optional, defaults to false) | Return IDs, state, local due dates, and content in the CLI's sort order |
+| `create_todo` | `content`, optional `due` | Create a pending TODO and return its ID |
+| `edit_todo` | `todo_id`, optional `content`, optional `due` | Update an existing TODO, preserving fields when omitted or null |
+| `complete_todo` | `todo_id` | Mark an existing TODO as done |
+
+Results are plain text. Due dates use local `YYYY-MM-DD`, as in the CLI; empty or
+invalid dates are rejected. Omitting or passing null for `due` preserves the
+date on edit and creates an undated item on creation. These tools do not clear
+an existing due date. Invalid input and missing TODOs return MCP tool errors.
+
 ## Database
 
 The CLI and server create `peco/peco.db` beneath Go's `os.UserConfigDir()`:

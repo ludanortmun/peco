@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -8,7 +9,9 @@ import (
 
 	"github.com/alecthomas/kong"
 	"github.com/ludanortmun/peco/internal/core"
+	"github.com/ludanortmun/peco/internal/mcpapi"
 	"github.com/ludanortmun/peco/internal/storage"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
 var version = "dev"
@@ -109,12 +112,19 @@ func (cmd *CompleteCmd) Run(client *core.PecoClient) error {
 	return nil
 }
 
+type MCPCmd struct{}
+
+func (cmd *MCPCmd) Run(client *core.PecoClient) error {
+	return mcpapi.NewServer(client, version).Run(context.Background(), &mcp.StdioTransport{})
+}
+
 func main() {
 	var cli struct {
 		New      NewCmd           `cmd:"" help:"Create a pending todo."`
 		List     ListCmd          `cmd:"" help:"List pending todos, sorted by due date and then oldest created."`
 		Edit     EditCmd          `cmd:"" help:"Update an existing todo's content or due date."`
 		Complete CompleteCmd      `cmd:"" help:"Mark an existing todo as done."`
+		MCP      MCPCmd           `cmd:"" help:"Run the MCP server over stdin/stdout."`
 		Version  kong.VersionFlag `help:"Print version and exit."`
 	}
 	ctx := kong.Parse(&cli, kong.Name("peco"), kong.Description("Manage todos stored in your user config directory at peco/peco.db."), kong.Vars{"version": version})
